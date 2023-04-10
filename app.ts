@@ -29,7 +29,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(compression());
 // app.use("/uploads", express.static("uploads"));
-app.use("/uploads", express.static(__dirname + "uploads"));
+app.use("/uploads", express.static(__dirname + "/uploads"));
 
 const io = new Server(httpServer, {
   path: "/socket/chat",
