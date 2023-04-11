@@ -22,8 +22,11 @@ app.use(
   })
 );
 
-app.use(morgan("dev"));
-// app.use(morgan("combined"));
+if (process.env.NODE_ENV == "production") {
+  app.use(morgan("combined"));
+} else {
+  app.use(morgan("dev"));
+}
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -38,8 +41,18 @@ const io = new Server(httpServer, {
   },
 });
 
+const chatUserListMap: Map<string, string> = new Map();
+
 io.on("connection", (socket: Socket) => {
   console.log(`유저입장 : ${new Date()} 유저아이디:${socket.id}`);
+
+  socket.on("userJoin", ({ userName }: { userName: string }) => {
+    chatUserListMap.set(socket.id, userName);
+    const chatUserListArray = Array.from(chatUserListMap, (entrty) => {
+      return { userId: entrty[0], userName: entrty[1] };
+    });
+    io.emit("userList", chatUserListArray);
+  });
 
   socket.on("sendMessage", ({ userName, message }: { userName: string; message: string }) => {
     io.emit("message", { userName, message });
@@ -47,6 +60,11 @@ io.on("connection", (socket: Socket) => {
 
   socket.on("disconnect", () => {
     console.log(`유저나감 : ${new Date()}  유저아이디:${socket.id}`);
+    chatUserListMap.delete(socket.id);
+    const chatUserListArray = Array.from(chatUserListMap, (entrty) => {
+      return { userId: entrty[0], userName: entrty[1] };
+    });
+    io.emit("userList", chatUserListArray);
   });
 });
 
