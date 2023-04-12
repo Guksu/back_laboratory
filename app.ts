@@ -59,7 +59,7 @@ io.on("connection", (socket: Socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log(`유저나감 : ${new Date()}  유저아이디:${socket.id}`);
+    console.log(`유저나감 : ${new Date()} 유저아이디:${socket.id}`);
     chatUserListMap.delete(socket.id);
     const chatUserListArray = Array.from(chatUserListMap, (entrty) => {
       return { userId: entrty[0], userName: entrty[1] };
@@ -81,12 +81,14 @@ const upload = multer({
 });
 
 app.post("/upload", upload.single("chatImage"), (req: Request, res: Response) => {
-  const imagePath: string = req.file ? `uploads/chat/${req.file?.filename}` : "";
+  const imagePath: string = req.file ? `http://localhost:8080/uploads/chat/${req.file?.filename}` : "";
+  const { userName } = req.body;
+
+  io.emit("message", { userName, imagePath });
 
   res.status(200).send({
     status: 200,
     message: "ok",
-    data: { chatImg: imagePath },
   });
 });
 
