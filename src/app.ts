@@ -31,7 +31,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(compression());
-app.use("/uploads", express.static(__dirname + "/uploads"));
+app.use("/upload", express.static(__dirname + "/upload"));
 
 const io = new Server(httpServer, {
   path: "/socket/chat",
@@ -71,7 +71,7 @@ io.on("connection", (socket: Socket) => {
 const upload = multer({
   storage: multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, "uploads/chat");
+      cb(null, __dirname + `/upload/chat`);
     },
     filename: function (req, file, cb) {
       const ext = path.extname(file.originalname);
@@ -81,7 +81,7 @@ const upload = multer({
 });
 
 app.post("/upload", upload.single("chatImage"), (req: Request, res: Response) => {
-  const imagePath: string = req.file ? `http://localhost:8080/uploads/chat/${req.file?.filename}` : "";
+  const imagePath: string = req.file ? `http://localhost:8080/upload/chat/${req.file?.filename}` : "";
   const { userName } = req.body;
 
   io.emit("message", { userName, imagePath });
